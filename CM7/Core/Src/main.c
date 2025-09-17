@@ -166,11 +166,14 @@ Error_Handler();
   {
 
     /* USER CODE END WHILE */
-
+	sendCANMessage(&hfdcan1, 0x204b55b, (uint8_t *)"\x00\x01\x00\x00\x00\x00\xfe\x0c", 8);
+	sendGlobalEnableFrame(&hfdcan1);
+	HAL_Delay(1);
+	}
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
-}
+
 
 /**
   * @brief System Clock Configuration

@@ -43,10 +43,10 @@ void MX_FDCAN1_Init(void)
   hfdcan1.Init.AutoRetransmission = DISABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 16;
+  hfdcan1.Init.NominalPrescaler = 5;
   hfdcan1.Init.NominalSyncJumpWidth = 1;
-  hfdcan1.Init.NominalTimeSeg1 = 1;
-  hfdcan1.Init.NominalTimeSeg2 = 1;
+  hfdcan1.Init.NominalTimeSeg1 = 5;
+  hfdcan1.Init.NominalTimeSeg2 = 2;
   hfdcan1.Init.DataPrescaler = 1;
   hfdcan1.Init.DataSyncJumpWidth = 1;
   hfdcan1.Init.DataTimeSeg1 = 1;
@@ -98,17 +98,17 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
     /* FDCAN1 clock enable */
     __HAL_RCC_FDCAN_CLK_ENABLE();
 
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
     /**FDCAN1 GPIO Configuration
-    PB8     ------> FDCAN1_RX
-    PB9     ------> FDCAN1_TX
+    PD0     ------> FDCAN1_RX
+    PD1     ------> FDCAN1_TX
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF9_FDCAN1;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* USER CODE BEGIN FDCAN1_MspInit 1 */
 
@@ -128,10 +128,10 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* fdcanHandle)
     __HAL_RCC_FDCAN_CLK_DISABLE();
 
     /**FDCAN1 GPIO Configuration
-    PB8     ------> FDCAN1_RX
-    PB9     ------> FDCAN1_TX
+    PD0     ------> FDCAN1_RX
+    PD1     ------> FDCAN1_TX
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_8|GPIO_PIN_9);
+    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_0|GPIO_PIN_1);
 
   /* USER CODE BEGIN FDCAN1_MspDeInit 1 */
 
@@ -140,5 +140,36 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* fdcanHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void sendCANMessage(FDCAN_HandleTypeDef *hfdcan, int identifier, uint8_t *message, uint8_t length)
+{
+	  FDCAN_TxHeaderTypeDef hdr;
+	  hdr.Identifier = identifier; // CAN Identifier
+	  hdr.IdType = FDCAN_EXTENDED_ID; // Specify that we're using extended CAN IDs
+	  hdr.TxFrameType = FDCAN_DATA_FRAME;
+	  hdr.DataLength = length; // Specify length of the data (in bytes)
+	  hdr.ErrorStateIndicator = FDCAN_ESI_PASSIVE;
+	  hdr.BitRateSwitch = FDCAN_BRS_OFF;
+	  hdr.FDFormat = FDCAN_CLASSIC_CAN; // Specify that we're using classic CAN, not CAN FD
+	  hdr.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	  hdr.MessageMarker = 0;
+	  // Adds a CANmessage to the queue to be transferred
+	  if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &hdr, (uint8_t *) message) != HAL_OK)
+		Error_Handler();
+}
+void sendGlobalEnableFrame(FDCAN_HandleTypeDef *hfdcan)
+{
+	  FDCAN_TxHeaderTypeDef hdr;
+	  hdr.Identifier = 0x401bf; // Identifier of the global enable frame
+	  hdr.IdType = FDCAN_EXTENDED_ID;
+	  hdr.TxFrameType = FDCAN_DATA_FRAME;
+	  hdr.DataLength = FDCAN_DLC_BYTES_2; // Global enable frame is 2 bytes long
+	  hdr.ErrorStateIndicator = FDCAN_ESI_PASSIVE;
+	  hdr.BitRateSwitch = FDCAN_BRS_OFF;
+	  hdr.FDFormat = FDCAN_CLASSIC_CAN;
+	  hdr.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	  hdr.MessageMarker = 0;
+	  if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &hdr, (uint8_t *) "\x01\x00") != HAL_OK)
+		Error_Handler();
+}
 
 /* USER CODE END 1 */
