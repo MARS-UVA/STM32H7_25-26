@@ -70,7 +70,9 @@ void MX_FDCAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN FDCAN1_Init 2 */
-
+  if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
+	  Error_Handler();
+  }
   /* USER CODE END FDCAN1_Init 2 */
 
 }
