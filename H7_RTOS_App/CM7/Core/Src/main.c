@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -21,7 +21,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 
+#include "debug.h"
+#include "serial.h"
+#include "control.h"
+#include "TalonFX.h"
+#include "PDP.h"
+#include "pot.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,40 +42,86 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-/* DUAL_CORE_BOOT_SYNC_SEQUENCE: Define for dual core boot synchronization    */
-/*                             demonstration code based on hardware semaphore */
-/* This define is present in both CM7/CM4 projects                            */
-/* To comment when developping/debugging on a single core                     */
-#define DUAL_CORE_BOOT_SYNC_SEQUENCE
-
-#if defined(DUAL_CORE_BOOT_SYNC_SEQUENCE)
-#ifndef HSEM_ID_0
-#define HSEM_ID_0 (0U) /* HW semaphore 0*/
-#endif
-#endif /* DUAL_CORE_BOOT_SYNC_SEQUENCE */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
+void can_irq(CAN_HandleTypeDef *pcan);
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+
+CAN_HandleTypeDef hcan1;
+
+I2C_HandleTypeDef hi2c1;
+
+UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
+UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
+
+/*
+ * Interfaces:
+ * ADC1 used for string potentiometer
+ * CAN1 used for motors
+ * I2C1 unused
+ * UART2 unused
+ * UART3 used for debugging (USB connection to laptop serial console)
+ * UART6 used for serial communication with Jetson
+ *
+ */
+
+PDP pdp;
+Pot leftPot;
+extern TalonSRX leftActuator;
+extern TalonSRX rightActuator;
+int enableSync = 0; // used to enable actuator synchronization
+
+uint8_t rx_buff[16];
+SerialPacket motorValues = (SerialPacket) {
+	.invalid = 0,
+	.header = 0x7F,
+	.top_left_wheel = 0x7F,
+	.back_left_wheel = 0x7F,
+	.top_right_wheel  = 0x7F,
+	.back_right_wheel = 0x7F,
+	.drum  = 0x7F,
+	.actuator  = 0x7F,
+};
+int count = 0;
+int actuatorUpCount = 0;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MPU_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_USART3_UART_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_ADC1_Init(void);
+static void MX_CAN1_Init(void);
+static void MX_I2C1_Init(void);
+static void MX_USART6_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+
+// stop all systems
+void stop()
+{
+	// TODO: Implement
+}
+
+
 
 /* USER CODE END 0 */
 
@@ -79,26 +135,10 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
-/* USER CODE BEGIN Boot_Mode_Sequence_0 */
-#if defined(DUAL_CORE_BOOT_SYNC_SEQUENCE)
-  int32_t timeout;
-#endif /* DUAL_CORE_BOOT_SYNC_SEQUENCE */
-/* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
   MPU_Config();
 
-/* USER CODE BEGIN Boot_Mode_Sequence_1 */
-#if defined(DUAL_CORE_BOOT_SYNC_SEQUENCE)
-  /* Wait until CPU2 boots and enters in stop mode or timeout*/
-  timeout = 0xFFFF;
-  while((__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY) != RESET) && (timeout-- > 0));
-  if ( timeout < 0 )
-  {
-  Error_Handler();
-  }
-#endif /* DUAL_CORE_BOOT_SYNC_SEQUENCE */
-/* USER CODE END Boot_Mode_Sequence_1 */
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -110,42 +150,101 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-/* USER CODE BEGIN Boot_Mode_Sequence_2 */
-#if defined(DUAL_CORE_BOOT_SYNC_SEQUENCE)
-/* When system initialization is finished, Cortex-M7 will release Cortex-M4 by means of
-HSEM notification */
-/*HW semaphore Clock enable*/
-__HAL_RCC_HSEM_CLK_ENABLE();
-/*Take HSEM */
-HAL_HSEM_FastTake(HSEM_ID_0);
-/*Release HSEM in order to notify the CPU2(CM4)*/
-HAL_HSEM_Release(HSEM_ID_0,0);
-/* wait until CPU2 wakes up from stop mode */
-timeout = 0xFFFF;
-while((__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY) == RESET) && (timeout-- > 0));
-if ( timeout < 0 )
-{
-Error_Handler();
-}
-#endif /* DUAL_CORE_BOOT_SYNC_SEQUENCE */
-/* USER CODE END Boot_Mode_Sequence_2 */
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_USART3_UART_Init();
+  MX_USART2_UART_Init();
+  MX_ADC1_Init();
+  MX_CAN1_Init();
+  MX_I2C1_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
+  initializeTalons();
+  HAL_UART_Receive_IT(&huart6, rx_buff, 16); // receive motor commands from the Jetson
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  pdp = PDPInit(&hcan1, 62);
+  leftPot = PotInit(&hadc1);
+
+
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	// After 10 loops  without receiving packets, stop the robot.
+	// right now it stops ~2s after we stop sending packets from the Jetson
+	if (count > 10) {
+		motorValues = (SerialPacket) {
+			.invalid = 0,
+			.header = 0x7F,
+			.top_left_wheel = 0x7F,
+			.back_left_wheel = 0x7F,
+			.top_right_wheel  = 0x7F,
+			.back_right_wheel = 0x7F,
+			.drum  = 0x7F,
+			.actuator  = 0x7F,
+		};
+
+		writeDebugString("Disconnected from Jetson!\r\n");
+	}
+
+	// every 10 cycles, poll motor currents and send to Jetson
+	if (count % 10 == 0) {
+
+		pdp.requestCurrentReadings(&pdp);
+
+		for (int i = 0; i < 10; i++)
+		{
+			if (pdp.receivedNew0 && pdp.receivedNew40 && pdp.receivedNew80)
+				break;
+
+			HAL_Delay(1);
+		}
+
+		float motorCurrents[8];
+		motorCurrents[0] = pdp.getChannelCurrent(&pdp, FRONT_LEFT_WHEEL_PDP_ID);
+		motorCurrents[1] = pdp.getChannelCurrent(&pdp, BACK_LEFT_WHEEL_PDP_ID);
+		motorCurrents[2] = pdp.getChannelCurrent(&pdp, FRONT_RIGHT_WHEEL_PDP_ID);
+		motorCurrents[3] = pdp.getChannelCurrent(&pdp, BACK_RIGHT_WHEEL_PDP_ID);
+		motorCurrents[4] = pdp.getChannelCurrent(&pdp, BUCKET_DRUM_LEFT_PDP_ID);
+		motorCurrents[5] = pdp.getChannelCurrent(&pdp, BUCKET_DRUM_PDP_ID);
+		motorCurrents[6] = pdp.getChannelCurrent(&pdp, LEFT_ACTUATOR_PDP_ID);
+		motorCurrents[7] = pdp.getChannelCurrent(&pdp, RIGHT_ACTUATOR_PDP_ID);
+
+		motorCurrents[8] = leftPot.read(&leftPot); // read a calibrated value from left potentiometer
+
+		pdp.receivedNew0 = false;
+		pdp.receivedNew40 = false;
+		pdp.receivedNew80 = false;
+
+		// convert floats to bytes, package bytes in packet
+	    uint8_t packet[4 + 4 * 9];  // 4-byte header + 9 floats (each has size of 4 bytes)
+	    packet[0] = 0x1; // use header 0x1 to indicate motor current feedback
+	    for (int i = 0; i < 9; i++) {
+	    	// add each float in motorCurrents as 4 bytes in packet
+	        floatToByteArray(motorCurrents[i], (char *) &packet[4 + i * 4]);
+
+	    }
+		//send packet to Jetson
+	    writeToJetson(packet, 4 + 4 * 9);
+	}
+
+
+	directControl(motorValues, enableSync); // send CAN packets to motors to set motor speeds
+
+	count += 1;
+	HAL_Delay(1);
+
   }
   /* USER CODE END 3 */
 }
@@ -159,21 +258,16 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Supply configuration update enable
-  */
-  HAL_PWREx_ConfigSupply(PWR_DIRECT_SMPS_SUPPLY);
-
   /** Configure the main internal regulator output voltage
   */
+  __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
-
-  while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -184,24 +278,366 @@ void SystemClock_Config(void)
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
-                              |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV1;
-  RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
 }
 
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_9;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief CAN1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CAN1_Init(void)
+{
+
+  /* USER CODE BEGIN CAN1_Init 0 */
+
+  /* USER CODE END CAN1_Init 0 */
+
+  /* USER CODE BEGIN CAN1_Init 1 */
+
+  /* USER CODE END CAN1_Init 1 */
+  hcan1.Instance = CAN1;
+  hcan1.Init.Prescaler = 2;
+  hcan1.Init.Mode = CAN_MODE_NORMAL;
+  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_5TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
+  hcan1.Init.TimeTriggeredMode = DISABLE;
+  hcan1.Init.AutoBusOff = DISABLE;
+  hcan1.Init.AutoWakeUp = DISABLE;
+  hcan1.Init.AutoRetransmission = DISABLE;
+  hcan1.Init.ReceiveFifoLocked = DISABLE;
+  hcan1.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CAN1_Init 2 */
+  CAN_FilterTypeDef sf;
+  sf.FilterMaskIdHigh = 0x0000;
+  sf.FilterMaskIdLow = 0x0000;
+  sf.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  sf.FilterBank = 0;
+  sf.FilterMode = CAN_FILTERMODE_IDMASK;
+  sf.FilterScale = CAN_FILTERSCALE_32BIT;
+  sf.FilterActivation = CAN_FILTER_ENABLE;
+  if (HAL_CAN_ConfigFilter(&hcan1, &sf) != HAL_OK)
+	Error_Handler();
+//
+  if (HAL_CAN_RegisterCallback(&hcan1, HAL_CAN_RX_FIFO0_MSG_PENDING_CB_ID, can_irq))
+	Error_Handler();
+//
+  if (HAL_CAN_Start(&hcan1) != HAL_OK)
+	Error_Handler();
+//
+  if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+	Error_Handler();
+  /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.Timing = 0x00303D5B;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * @brief USART6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART6_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART6_Init 0 */
+
+  /* USER CODE END USART6_Init 0 */
+
+  /* USER CODE BEGIN USART6_Init 1 */
+
+  /* USER CODE END USART6_Init 1 */
+  huart6.Instance = USART6;
+  huart6.Init.BaudRate = 115200;
+  huart6.Init.WordLength = UART_WORDLENGTH_8B;
+  huart6.Init.StopBits = UART_STOPBITS_1;
+  huart6.Init.Parity = UART_PARITY_NONE;
+  huart6.Init.Mode = UART_MODE_TX_RX;
+  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart6.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart6.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART6_Init 2 */
+
+  /* USER CODE END USART6_Init 2 */
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pin : PE2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
+}
+
 /* USER CODE BEGIN 4 */
 
+// read CAN packets and check if the packets are PDP current feedback packets
+void can_irq(CAN_HandleTypeDef *pcan)
+{
+  CAN_RxHeaderTypeDef msg;
+  uint64_t data;
+  HAL_CAN_GetRxMessage(pcan, CAN_RX_FIFO0, &msg, (uint8_t *) &data);
+  if (pdp.receiveCAN)
+	  pdp.receiveCAN(&pdp, &msg, &data);
+}
+
+#define START_BYTE 255
+
+// Check if start byte exists in motor command packets
+int findStartByte(uint8_t *rx_buff, int length)
+{
+	for (int i = 0; i < length; i++)
+	{
+		if (rx_buff[i] == START_BYTE)
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+// This function is called upon receiving a motor command packet over UART
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (HAL_UART_Receive_IT(&huart6, rx_buff, 16) != HAL_OK)
+	{
+		writeDebugString("ERROR OCCURED DURING UART RX INTERRUPT\r\n");
+	}
+
+	int startByte = findStartByte(rx_buff, 8);
+	if (startByte == -1)
+		return;
+
+	if (startByte == 0 && rx_buff[8] == START_BYTE)
+		startByte += 8;
+
+	count = 0;
+	motorValues = (SerialPacket) {
+		.invalid = 0,
+		.header = rx_buff[startByte + 1],
+		.top_left_wheel = rx_buff[startByte + 2],
+		.back_left_wheel = rx_buff[startByte + 3],
+		.top_right_wheel  = rx_buff[startByte + 4],
+		.back_right_wheel = rx_buff[startByte + 5],
+		.drum  = rx_buff[startByte + 6],
+		.actuator  = rx_buff[startByte + 7],
+	};
+}
 /* USER CODE END 4 */
 
  /* MPU Configuration */
@@ -247,7 +683,8 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-#ifdef USE_FULL_ASSERT
+
+#ifdef  USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
