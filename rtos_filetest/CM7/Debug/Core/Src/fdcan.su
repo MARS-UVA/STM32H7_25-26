@@ -1,5 +1,0 @@
-../Core/Src/fdcan.c:24:6:sendCANMessage	64	static
-../Core/Src/fdcan.c:40:6:sendGlobalEnableFrame	56	static
-../Core/Src/fdcan.c:59:6:MX_FDCAN1_Init	8	static
-../Core/Src/fdcan.c:107:6:HAL_FDCAN_MspInit	240	static
-../Core/Src/fdcan.c:148:6:HAL_FDCAN_MspDeInit	16	static

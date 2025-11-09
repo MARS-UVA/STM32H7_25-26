@@ -1,6 +1,0 @@
-../Core/Src/PDP.c:11:6:requestCurrentReadingsPDP	1
-../Core/Src/PDP.c:17:6:getSixParamPDP	1
-../Core/Src/PDP.c:65:7:getChannelCurrentPDP	5
-../Core/Src/PDP.c:83:6:receiveCANPDP	8
-../Core/Src/PDP.c:115:7:getBusVoltagePDP	1
-../Core/Src/PDP.c:120:5:PDPInit	1
