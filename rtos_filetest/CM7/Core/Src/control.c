@@ -1,6 +1,6 @@
 #include "control.h"
 
-extern CAN_HandleTypeDef hcan1;
+extern FDCAN_HandleTypeDef hfdcan1;
 
 TalonFX frontLeft;
 TalonFX backLeft;
@@ -15,22 +15,22 @@ TalonSRX rightActuator;
 
 // Initialize Talon "objects"
 void initializeTalons() {
-	frontLeft = TalonFXInit(&hcan1, FRONT_LEFT_WHEEL_ID);
-	backLeft = TalonFXInit(&hcan1, BACK_LEFT_WHEEL_ID);
-	frontRight = TalonFXInit(&hcan1, FRONT_RIGHT_WHEEL_ID);
-	backRight = TalonFXInit(&hcan1, BACK_RIGHT_WHEEL_ID);
-	bucketDrumRight = TalonFXInit(&hcan1, BUCKET_DRUM_ID);
-	bucketDrumLeft = TalonFXInit(&hcan1, BUCKET_DRUM_LEFT_ID);
+	frontLeft = TalonFXInit(&hfdcan1, FRONT_LEFT_WHEEL_ID);
+	backLeft = TalonFXInit(&hfdcan1, BACK_LEFT_WHEEL_ID);
+	frontRight = TalonFXInit(&hfdcan1, FRONT_RIGHT_WHEEL_ID);
+	backRight = TalonFXInit(&hfdcan1, BACK_RIGHT_WHEEL_ID);
+	bucketDrumRight = TalonFXInit(&hfdcan1, BUCKET_DRUM_ID);
+	bucketDrumLeft = TalonFXInit(&hfdcan1, BUCKET_DRUM_LEFT_ID);
 
-	leftActuator = TalonSRXInit(&hcan1, LEFT_ACTUATOR_ID);
-	rightActuator = TalonSRXInit(&hcan1, RIGHT_ACTUATOR_ID);
+	leftActuator = TalonSRXInit(&hfdcan1, LEFT_ACTUATOR_ID);
+	rightActuator = TalonSRXInit(&hfdcan1, RIGHT_ACTUATOR_ID);
 }
 
 // Given packet from Jetson, set outputs of motors and actuators
 void directControl(SerialPacket packet, int enableSync)
 {
 	// Send global enable frame (so that Talons actively receive CAN packets)
-	sendGlobalEnableFrame(&hcan1);
+	sendGlobalEnableFrame(&hfdcan1);
 
 	// Set output speeds of left motors
 	int8_t leftSpeed = packet.top_left_wheel; // a value between 0 and 0xff (-127 and 128)
