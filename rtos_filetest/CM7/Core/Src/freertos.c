@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "serial.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,21 +45,31 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+extern int enableSync;
+extern uint8_t rx_buff[16];
+extern SerialPacket motorValues;
+extern int count;
 /* USER CODE END Variables */
-/* Definitions for exTask01 */
-osThreadId_t exTask01Handle;
-const osThreadAttr_t exTask01_attributes = {
-  .name = "exTask01",
+/* Definitions for ControlTask */
+osThreadId_t ControlTaskHandle;
+const osThreadAttr_t ControlTask_attributes = {
+  .name = "ControlTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
+};
+/* Definitions for FeedbackTask */
+osThreadId_t FeedbackTaskHandle;
+const osThreadAttr_t FeedbackTask_attributes = {
+  .name = "FeedbackTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
+/* Definitions for ADCTask */
+osThreadId_t ADCTaskHandle;
+const osThreadAttr_t ADCTask_attributes = {
+  .name = "ADCTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for exTask02 */
-osThreadId_t exTask02Handle;
-const osThreadAttr_t exTask02_attributes = {
-  .name = "exTask02",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityBelowNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -67,8 +77,9 @@ const osThreadAttr_t exTask02_attributes = {
 
 /* USER CODE END FunctionPrototypes */
 
-void StartTask01(void *argument);
-void StartTask02(void *argument);
+void ControlTaskFunction(void *argument);
+void FeedbackTaskFunction(void *argument);
+void ADCTaskFunction(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -99,11 +110,14 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of exTask01 */
-  exTask01Handle = osThreadNew(StartTask01, NULL, &exTask01_attributes);
+  /* creation of ControlTask */
+  ControlTaskHandle = osThreadNew(ControlTaskFunction, NULL, &ControlTask_attributes);
 
-  /* creation of exTask02 */
-  exTask02Handle = osThreadNew(StartTask02, NULL, &exTask02_attributes);
+  /* creation of FeedbackTask */
+  FeedbackTaskHandle = osThreadNew(FeedbackTaskFunction, NULL, &FeedbackTask_attributes);
+
+  /* creation of ADCTask */
+  ADCTaskHandle = osThreadNew(ADCTaskFunction, NULL, &ADCTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -115,44 +129,104 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_StartTask01 */
+/* USER CODE BEGIN Header_ControlTaskFunction */
 /**
-  * @brief  Function implementing the exTask01 thread.
+  * @brief  Function implementing the ControlTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartTask01 */
-void StartTask01(void *argument)
+/* USER CODE END Header_ControlTaskFunction */
+void ControlTaskFunction(void *argument)
 {
-  /* USER CODE BEGIN StartTask01 */
+  /* USER CODE BEGIN ControlTaskFunction */
   /* Infinite loop */
   for(;;)
   {
+	directControl(motorValues, enableSync); // send CAN packets to motors to set motor speeds
     osDelay(1);
   }
-  /* USER CODE END StartTask01 */
+  /* USER CODE END ControlTaskFunction */
 }
 
-/* USER CODE BEGIN Header_StartTask02 */
+/* USER CODE BEGIN Header_FeedbackTaskFunction */
 /**
-* @brief Function implementing the exTask02 thread.
+* @brief Function implementing the FeedbackTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask02 */
-void StartTask02(void *argument)
+/* USER CODE END Header_FeedbackTaskFunction */
+void FeedbackTaskFunction(void *argument)
 {
-  /* USER CODE BEGIN StartTask02 */
+  /* USER CODE BEGIN FeedbackTaskFunction */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END StartTask02 */
+  /* USER CODE END FeedbackTaskFunction */
+}
+
+/* USER CODE BEGIN Header_ADCTaskFunction */
+/**
+* @brief Function implementing the ADCTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_ADCTaskFunction */
+void ADCTaskFunction(void *argument)
+{
+  /* USER CODE BEGIN ADCTaskFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END ADCTaskFunction */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+// This function is called upon receiving a motor command packet over UART
+#define START_BYTE 255
 
+// Check if start byte exists in motor command packets
+int findStartByte(uint8_t *rx_buff, int length)
+{
+	for (int i = 0; i < length; i++)
+	{
+		if (rx_buff[i] == START_BYTE)
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (HAL_UART_Receive_IT(&huart6, rx_buff, 16) != HAL_OK)
+	{
+		writeDebugString("ERROR OCCURED DURING UART RX INTERRUPT\r\n");
+	}
+
+	int startByte = findStartByte(rx_buff, 8);
+	if (startByte == -1)
+		return;
+
+	if (startByte == 0 && rx_buff[8] == START_BYTE)
+		startByte += 8;
+
+	count = 0;
+	motorValues = (SerialPacket) {
+		.invalid = 0,
+		.header = rx_buff[startByte + 1],
+		.top_left_wheel = rx_buff[startByte + 2],
+		.back_left_wheel = rx_buff[startByte + 3],
+		.top_right_wheel  = rx_buff[startByte + 4],
+		.back_right_wheel = rx_buff[startByte + 5],
+		.drum  = rx_buff[startByte + 6],
+		.actuator  = rx_buff[startByte + 7],
+	};
+}
 /* USER CODE END Application */
 

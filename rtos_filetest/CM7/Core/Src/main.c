@@ -19,9 +19,16 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "adc.h"
 #include "fdcan.h"
 #include "usart.h"
 #include "gpio.h"
+#include "debug.h"
+#include "serial.h"
+#include "control.h"
+#include "TalonFX.h"
+#include "PDP.h"
+#include "pot.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -58,6 +65,18 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+int enableSync = 0; // used to enable actuator synchronization
+uint8_t rx_buff[16];
+SerialPacket motorValues = (SerialPacket) {
+	.invalid = 0,
+	.header = 0x7F,
+	.top_left_wheel = 0x7F,
+	.back_left_wheel = 0x7F,
+	.top_right_wheel  = 0x7F,
+	.back_right_wheel = 0x7F,
+	.drum  = 0x7F,
+	.actuator  = 0x7F,
+};
 int count = 0;
 /* USER CODE END PV */
 
@@ -140,8 +159,10 @@ Error_Handler();
   MX_FDCAN1_Init();
   MX_USART3_UART_Init();
   MX_USART6_UART_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
+  initializeTalons();
+  HAL_UART_Receive_IT(&huart6, rx_buff, 16); // receive motor commands from the Jetson
   /* USER CODE END 2 */
 
   /* Init scheduler */
