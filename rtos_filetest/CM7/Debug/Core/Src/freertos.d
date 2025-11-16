@@ -47,7 +47,11 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
- ../Core/Inc/serial.h
+ ../Core/Inc/serial.h ../Core/Inc/debug.h ../Core/Inc/control.h \
+ ../Core/Inc/serial.h ../Core/Inc/TalonSRX.h ../Core/Inc/main.h \
+ ../Core/Inc/util.h ../Core/Inc/fdcan.h ../Core/Inc/TalonFX.h \
+ ../Core/Inc/debug.h ../Core/Inc/TalonFX.h ../Core/Inc/PDP.h \
+ ../Core/Inc/pot.h ../Core/Inc/fdcan.h ../Core/Inc/adc.h
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
@@ -97,3 +101,17 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
 ../Core/Inc/serial.h:
+../Core/Inc/debug.h:
+../Core/Inc/control.h:
+../Core/Inc/serial.h:
+../Core/Inc/TalonSRX.h:
+../Core/Inc/main.h:
+../Core/Inc/util.h:
+../Core/Inc/fdcan.h:
+../Core/Inc/TalonFX.h:
+../Core/Inc/debug.h:
+../Core/Inc/TalonFX.h:
+../Core/Inc/PDP.h:
+../Core/Inc/pot.h:
+../Core/Inc/fdcan.h:
+../Core/Inc/adc.h:

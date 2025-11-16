@@ -23,9 +23,17 @@
 #include "main.h"
 #include "cmsis_os.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "serial.h"
+#include "debug.h"
+#include "control.h"
+#include "TalonFX.h"
+#include "PDP.h"
+#include "pot.h"
+#include "fdcan.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +57,8 @@ extern int enableSync;
 extern uint8_t rx_buff[16];
 extern SerialPacket motorValues;
 extern int count;
+PDP pdp;
+Pot leftPot;
 /* USER CODE END Variables */
 /* Definitions for ControlTask */
 osThreadId_t ControlTaskHandle;
@@ -90,7 +100,8 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-
+	pdp = PDPInit(&hfdcan1, 62);
+	leftPot = PotInit(&hadc1);
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -161,6 +172,45 @@ void FeedbackTaskFunction(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  if (count % 10 == 0) {
+
+	  		pdp.requestCurrentReadings(&pdp);
+
+	  		for (int i = 0; i < 10; i++)
+	  		{
+	  			if (pdp.receivedNew0 && pdp.receivedNew40 && pdp.receivedNew80)
+	  				break;
+
+	  			HAL_Delay(1);
+	  		}
+
+	  		float motorCurrents[8];
+	  		motorCurrents[0] = pdp.getChannelCurrent(&pdp, FRONT_LEFT_WHEEL_PDP_ID);
+	  		motorCurrents[1] = pdp.getChannelCurrent(&pdp, BACK_LEFT_WHEEL_PDP_ID);
+	  		motorCurrents[2] = pdp.getChannelCurrent(&pdp, FRONT_RIGHT_WHEEL_PDP_ID);
+	  		motorCurrents[3] = pdp.getChannelCurrent(&pdp, BACK_RIGHT_WHEEL_PDP_ID);
+	  		motorCurrents[4] = pdp.getChannelCurrent(&pdp, BUCKET_DRUM_LEFT_PDP_ID);
+	  		motorCurrents[5] = pdp.getChannelCurrent(&pdp, BUCKET_DRUM_PDP_ID);
+	  		motorCurrents[6] = pdp.getChannelCurrent(&pdp, LEFT_ACTUATOR_PDP_ID);
+	  		motorCurrents[7] = pdp.getChannelCurrent(&pdp, RIGHT_ACTUATOR_PDP_ID);
+
+	  		motorCurrents[8] = leftPot.read(&leftPot); // read a calibrated value from left potentiometer
+
+	  		pdp.receivedNew0 = false;
+	  		pdp.receivedNew40 = false;
+	  		pdp.receivedNew80 = false;
+
+	  		// convert floats to bytes, package bytes in packet
+	  	    uint8_t packet[4 + 4 * 9];  // 4-byte header + 9 floats (each has size of 4 bytes)
+	  	    packet[0] = 0x1; // use header 0x1 to indicate motor current feedback
+	  	    for (int i = 0; i < 9; i++) {
+	  	    	// add each float in motorCurrents as 4 bytes in packet
+	  	        floatToByteArray(motorCurrents[i], (char *) &packet[4 + i * 4]);
+
+	  	    }
+	  		//send packet to Jetson
+	  	    writeToJetson(packet, 4 + 4 * 9);
+	  	}
     osDelay(1);
   }
   /* USER CODE END FeedbackTaskFunction */
