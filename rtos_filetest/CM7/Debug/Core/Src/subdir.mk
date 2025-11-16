@@ -22,7 +22,8 @@ C_SRCS += \
 ../Core/Src/stm32h7xx_it.c \
 ../Core/Src/syscalls.c \
 ../Core/Src/sysmem.c \
-../Core/Src/usart.c 
+../Core/Src/usart.c \
+../Core/Src/util.c 
 
 OBJS += \
 ./Core/Src/PDP.o \
@@ -42,7 +43,8 @@ OBJS += \
 ./Core/Src/stm32h7xx_it.o \
 ./Core/Src/syscalls.o \
 ./Core/Src/sysmem.o \
-./Core/Src/usart.o 
+./Core/Src/usart.o \
+./Core/Src/util.o 
 
 C_DEPS += \
 ./Core/Src/PDP.d \
@@ -62,7 +64,8 @@ C_DEPS += \
 ./Core/Src/stm32h7xx_it.d \
 ./Core/Src/syscalls.d \
 ./Core/Src/sysmem.d \
-./Core/Src/usart.d 
+./Core/Src/usart.d \
+./Core/Src/util.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -72,7 +75,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/PDP.cyclo ./Core/Src/PDP.d ./Core/Src/PDP.o ./Core/Src/PDP.su ./Core/Src/TalonFX.cyclo ./Core/Src/TalonFX.d ./Core/Src/TalonFX.o ./Core/Src/TalonFX.su ./Core/Src/TalonSRX.cyclo ./Core/Src/TalonSRX.d ./Core/Src/TalonSRX.o ./Core/Src/TalonSRX.su ./Core/Src/adc.cyclo ./Core/Src/adc.d ./Core/Src/adc.o ./Core/Src/adc.su ./Core/Src/control.cyclo ./Core/Src/control.d ./Core/Src/control.o ./Core/Src/control.su ./Core/Src/debug.cyclo ./Core/Src/debug.d ./Core/Src/debug.o ./Core/Src/debug.su ./Core/Src/fdcan.cyclo ./Core/Src/fdcan.d ./Core/Src/fdcan.o ./Core/Src/fdcan.su ./Core/Src/freertos.cyclo ./Core/Src/freertos.d ./Core/Src/freertos.o ./Core/Src/freertos.su ./Core/Src/gpio.cyclo ./Core/Src/gpio.d ./Core/Src/gpio.o ./Core/Src/gpio.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/pot.cyclo ./Core/Src/pot.d ./Core/Src/pot.o ./Core/Src/pot.su ./Core/Src/serial.cyclo ./Core/Src/serial.d ./Core/Src/serial.o ./Core/Src/serial.su ./Core/Src/stm32h7xx_hal_msp.cyclo ./Core/Src/stm32h7xx_hal_msp.d ./Core/Src/stm32h7xx_hal_msp.o ./Core/Src/stm32h7xx_hal_msp.su ./Core/Src/stm32h7xx_hal_timebase_tim.cyclo ./Core/Src/stm32h7xx_hal_timebase_tim.d ./Core/Src/stm32h7xx_hal_timebase_tim.o ./Core/Src/stm32h7xx_hal_timebase_tim.su ./Core/Src/stm32h7xx_it.cyclo ./Core/Src/stm32h7xx_it.d ./Core/Src/stm32h7xx_it.o ./Core/Src/stm32h7xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/usart.cyclo ./Core/Src/usart.d ./Core/Src/usart.o ./Core/Src/usart.su
+	-$(RM) ./Core/Src/PDP.cyclo ./Core/Src/PDP.d ./Core/Src/PDP.o ./Core/Src/PDP.su ./Core/Src/TalonFX.cyclo ./Core/Src/TalonFX.d ./Core/Src/TalonFX.o ./Core/Src/TalonFX.su ./Core/Src/TalonSRX.cyclo ./Core/Src/TalonSRX.d ./Core/Src/TalonSRX.o ./Core/Src/TalonSRX.su ./Core/Src/adc.cyclo ./Core/Src/adc.d ./Core/Src/adc.o ./Core/Src/adc.su ./Core/Src/control.cyclo ./Core/Src/control.d ./Core/Src/control.o ./Core/Src/control.su ./Core/Src/debug.cyclo ./Core/Src/debug.d ./Core/Src/debug.o ./Core/Src/debug.su ./Core/Src/fdcan.cyclo ./Core/Src/fdcan.d ./Core/Src/fdcan.o ./Core/Src/fdcan.su ./Core/Src/freertos.cyclo ./Core/Src/freertos.d ./Core/Src/freertos.o ./Core/Src/freertos.su ./Core/Src/gpio.cyclo ./Core/Src/gpio.d ./Core/Src/gpio.o ./Core/Src/gpio.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/pot.cyclo ./Core/Src/pot.d ./Core/Src/pot.o ./Core/Src/pot.su ./Core/Src/serial.cyclo ./Core/Src/serial.d ./Core/Src/serial.o ./Core/Src/serial.su ./Core/Src/stm32h7xx_hal_msp.cyclo ./Core/Src/stm32h7xx_hal_msp.d ./Core/Src/stm32h7xx_hal_msp.o ./Core/Src/stm32h7xx_hal_msp.su ./Core/Src/stm32h7xx_hal_timebase_tim.cyclo ./Core/Src/stm32h7xx_hal_timebase_tim.d ./Core/Src/stm32h7xx_hal_timebase_tim.o ./Core/Src/stm32h7xx_hal_timebase_tim.su ./Core/Src/stm32h7xx_it.cyclo ./Core/Src/stm32h7xx_it.d ./Core/Src/stm32h7xx_it.o ./Core/Src/stm32h7xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/usart.cyclo ./Core/Src/usart.d ./Core/Src/usart.o ./Core/Src/usart.su ./Core/Src/util.cyclo ./Core/Src/util.d ./Core/Src/util.o ./Core/Src/util.su
 
 .PHONY: clean-Core-2f-Src
 

@@ -32,7 +32,7 @@ void sendCANMessage(FDCAN_HandleTypeDef *hfdcan, int identifier, char *message, 
 	  hdr.DataLength = length;
 	  //hdr.TransmitGlobalTime = DISABLE;
 
-	  if (HAL_FDCAN_AddTxMessage(hfdcan, &hdr, (unsigned char *) message, &mb) != HAL_OK)
+	  if (HAL_FDCAN_AddMessageToTxBuffer(hfdcan, &hdr, (unsigned char *) message, &mb) != HAL_OK)
 		Error_Handler();
 }
 
@@ -48,7 +48,7 @@ void sendGlobalEnableFrame(FDCAN_HandleTypeDef *hfdcan)
 	  hdr.DataLength = 2;
 	  //hdr.TransmitGlobalTime = DISABLE;
 
-	  if (HAL_CAN_AddTxMessage(hfdcan, &hdr, (unsigned char *) "\x01\x00", &mb) != HAL_OK)
+	  if (HAL_FDCAN_AddMessageToTxBuffer(hfdcan, &hdr, (unsigned char *) "\x01\x00", &mb) != HAL_OK)
 		Error_Handler();
 }
 /* USER CODE END 0 */

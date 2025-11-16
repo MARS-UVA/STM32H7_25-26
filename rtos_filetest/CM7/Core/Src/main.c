@@ -23,16 +23,20 @@
 #include "fdcan.h"
 #include "usart.h"
 #include "gpio.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+
 #include "debug.h"
 #include "serial.h"
 #include "control.h"
 #include "TalonFX.h"
 #include "PDP.h"
 #include "pot.h"
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

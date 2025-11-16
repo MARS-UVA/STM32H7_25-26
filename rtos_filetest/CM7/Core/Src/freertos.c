@@ -204,7 +204,7 @@ int findStartByte(uint8_t *rx_buff, int length)
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	if (HAL_UART_Receive_IT(&huart6, rx_buff, 16) != HAL_OK)
+	if (HAL_UART_Receive_IT(&huart, rx_buff, 16) != HAL_OK)
 	{
 		writeDebugString("ERROR OCCURED DURING UART RX INTERRUPT\r\n");
 	}
