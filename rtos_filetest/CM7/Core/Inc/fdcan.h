@@ -29,7 +29,7 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-void sendCANMessage(FDCAN_HandleTypeDef *hfdcan, int identifier, char *message, uint8_t length);
+void sendCANMessage(FDCAN_HandleTypeDef *hfdcan, int identifier, uint8_t *message, uint8_t length);
 void sendGlobalEnableFrame(FDCAN_HandleTypeDef *hfdcan);
 /* USER CODE END Includes */
 

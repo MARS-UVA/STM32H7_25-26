@@ -21,36 +21,41 @@
 #include "fdcan.h"
 
 /* USER CODE BEGIN 0 */
-void sendCANMessage(FDCAN_HandleTypeDef *hfdcan, int identifier, char *message, uint8_t length)
+void sendCANMessage(FDCAN_HandleTypeDef *hfdcan, int identifier, uint8_t *message, uint8_t length)
 {
-	  uint32_t mb;
 	  FDCAN_TxHeaderTypeDef hdr;
-
-	  hdr.Identifier = identifier;
-	  hdr.IdType = FDCAN_EXTENDED_ID;
+	  hdr.Identifier = identifier; // CAN Identifier
+	  hdr.IdType = FDCAN_EXTENDED_ID; // Specify that we're using extended CAN IDs
 	  hdr.TxFrameType = FDCAN_DATA_FRAME;
-	  hdr.DataLength = length;
-	  //hdr.TransmitGlobalTime = DISABLE;
-
-	  if (HAL_FDCAN_AddMessageToTxBuffer(hfdcan, &hdr, (unsigned char *) message, &mb) != HAL_OK)
+	  hdr.DataLength = length; // Specify length of the data (in bytes)
+	  hdr.ErrorStateIndicator = FDCAN_ESI_PASSIVE;
+	  hdr.BitRateSwitch = FDCAN_BRS_OFF;
+	  hdr.FDFormat = FDCAN_CLASSIC_CAN; // Specify that we're using classic CAN, not CAN FD
+	  hdr.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	  hdr.MessageMarker = 0;
+	  // Adds a CANmessage to the queue to be transferred
+	  if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &hdr, (uint8_t *) message) != HAL_OK)
 		Error_Handler();
 }
+
 
 // send the Global Enable Frame required to enable the Talon motor controllers
 void sendGlobalEnableFrame(FDCAN_HandleTypeDef *hfdcan)
 {
-	  uint32_t mb;
 	  FDCAN_TxHeaderTypeDef hdr;
-
-	  hdr.Identifier = 0x401bf;
+	  hdr.Identifier = 0x401bf; // Identifier of the global enable frame
 	  hdr.IdType = FDCAN_EXTENDED_ID;
 	  hdr.TxFrameType = FDCAN_DATA_FRAME;
-	  hdr.DataLength = 2;
-	  //hdr.TransmitGlobalTime = DISABLE;
-
-	  if (HAL_FDCAN_AddMessageToTxBuffer(hfdcan, &hdr, (unsigned char *) "\x01\x00", &mb) != HAL_OK)
+	  hdr.DataLength = FDCAN_DLC_BYTES_2; // Global enable frame is 2 bytes long
+	  hdr.ErrorStateIndicator = FDCAN_ESI_PASSIVE;
+	  hdr.BitRateSwitch = FDCAN_BRS_OFF;
+	  hdr.FDFormat = FDCAN_CLASSIC_CAN;
+	  hdr.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	  hdr.MessageMarker = 0;
+	  if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &hdr, (uint8_t *) "\x01\x00") != HAL_OK)
 		Error_Handler();
 }
+
 /* USER CODE END 0 */
 
 FDCAN_HandleTypeDef hfdcan1;

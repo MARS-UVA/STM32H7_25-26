@@ -142,6 +142,7 @@ void ControlTaskFunction(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
 	directControl(motorValues, enableSync); // send CAN packets to motors to set motor speeds
     osDelay(1);
   }
