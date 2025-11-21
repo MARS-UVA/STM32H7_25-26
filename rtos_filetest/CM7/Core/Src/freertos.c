@@ -22,6 +22,8 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "PDP.h"
+#include "stm32h7xx_hal_fdcan.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -75,7 +77,7 @@ const osThreadAttr_t ADCTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+void can_irq(FDCAN_HandleTypeDef *pcan);
 /* USER CODE END FunctionPrototypes */
 
 void ControlTaskFunction(void *argument);
@@ -128,6 +130,18 @@ void MX_FREERTOS_Init(void) {
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
 
+}
+
+PDP pdp;
+
+//can_irq function implementation
+void can_irq(FDCAN_HandleTypeDef *pcan)
+{
+  FDCAN_RxHeaderTypeDef msg;
+  uint64_t data;
+  HAL_FDCAN_GetRxMessage(pcan, FDCAN_RX_FIFO0, &msg, (uint8_t *) &data);
+  if (pdp.receiveCAN)
+	  pdp.receiveCAN(&pdp, &msg, &data);
 }
 
 /* USER CODE BEGIN Header_ControlTaskFunction */
@@ -232,5 +246,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		.actuator  = rx_buff[startByte + 7],
 	};
 }
+
+
 /* USER CODE END Application */
 

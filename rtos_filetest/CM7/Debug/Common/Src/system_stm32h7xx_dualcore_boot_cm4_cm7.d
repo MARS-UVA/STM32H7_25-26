@@ -1,5 +1,5 @@
 Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o: \
- C:/Users/sokja/OneDrive/Documents/GitHub/STM32H7_25-26/rtos_filetest/Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c \
+ C:/Users/adity/MARSElectricRepo/STM32H7_25-26/JayH7/STM32H7_25-26/rtos_filetest/Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c \
  ../../Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h7xx.h \
  ../../Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h755xx.h \
  ../../Drivers/CMSIS/Include/core_cm7.h \
