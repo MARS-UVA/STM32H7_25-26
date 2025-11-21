@@ -49,6 +49,7 @@ extern int enableSync;
 extern uint8_t rx_buff[16];
 extern SerialPacket motorValues;
 extern int count;
+extern FDCAN_HandleTypeDef hfdcan1;
 /* USER CODE END Variables */
 /* Definitions for ControlTask */
 osThreadId_t ControlTaskHandle;
@@ -143,8 +144,10 @@ void ControlTaskFunction(void *argument)
   for(;;)
   {
 	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
-	directControl(motorValues, enableSync); // send CAN packets to motors to set motor speeds
-    osDelay(1);
+	  sendGlobalEnableFrame(&hfdcan1);
+	  sendCANMessage(&hfdcan1, 0x204b540 | 36, (uint8_t *)"\x00\x01\x00\x00\x00\x00\xfe\x0c", 8);
+	//directControl(motorValues, enableSync); // send CAN packets to motors to set motor speeds
+    osDelay(10);
   }
   /* USER CODE END ControlTaskFunction */
 }
