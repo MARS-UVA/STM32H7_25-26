@@ -1,5 +1,5 @@
 Middlewares/Third_Party/FreeRTOS/event_groups.o: \
- C:/Users/adity/MARSElectricRepo/STM32H7_25-26/JayH7/STM32H7_25-26/rtos_filetest/Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
+ C:/Users/sokja/OneDrive/Documents/GitHub/STM32H7_25-26/rtos_filetest/Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h \

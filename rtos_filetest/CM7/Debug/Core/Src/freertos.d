@@ -47,7 +47,6 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
- ../Core/Inc/PDP.h ../Core/Inc/util.h ../Core/Inc/main.h \
  ../Core/Inc/serial.h
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
@@ -97,7 +96,4 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
-../Core/Inc/PDP.h:
-../Core/Inc/util.h:
-../Core/Inc/main.h:
 ../Core/Inc/serial.h:

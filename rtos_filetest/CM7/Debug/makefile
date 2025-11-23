@@ -62,8 +62,8 @@ all: main-build
 main-build: rtos_filetest_CM7.elf secondary-outputs
 
 # Tool invocations
-rtos_filetest_CM7.elf rtos_filetest_CM7.map: $(OBJS) $(USER_OBJS) C:\Users\adity\MARSElectricRepo\STM32H7_25-26\JayH7\STM32H7_25-26\rtos_filetest\CM7\STM32H755ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "rtos_filetest_CM7.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\adity\MARSElectricRepo\STM32H7_25-26\JayH7\STM32H7_25-26\rtos_filetest\CM7\STM32H755ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="rtos_filetest_CM7.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+rtos_filetest_CM7.elf rtos_filetest_CM7.map: $(OBJS) $(USER_OBJS) C:\Users\sokja\OneDrive\Documents\GitHub\STM32H7_25-26\rtos_filetest\CM7\STM32H755ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "rtos_filetest_CM7.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\sokja\OneDrive\Documents\GitHub\STM32H7_25-26\rtos_filetest\CM7\STM32H755ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="rtos_filetest_CM7.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

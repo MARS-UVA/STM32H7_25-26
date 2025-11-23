@@ -22,8 +22,6 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "PDP.h"
-#include "stm32h7xx_hal_fdcan.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -130,18 +128,6 @@ void MX_FREERTOS_Init(void) {
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
 
-}
-
-PDP pdp;
-
-//can_irq function implementation
-void can_irq(FDCAN_HandleTypeDef *pcan)
-{
-  FDCAN_RxHeaderTypeDef msg;
-  uint64_t data;
-  HAL_FDCAN_GetRxMessage(pcan, FDCAN_RX_FIFO0, &msg, (uint8_t *) &data);
-  if (pdp.receiveCAN)
-	  pdp.receiveCAN(&pdp, &msg, &data);
 }
 
 /* USER CODE BEGIN Header_ControlTaskFunction */
