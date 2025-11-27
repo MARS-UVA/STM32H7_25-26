@@ -26,6 +26,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "serial.h"
+#include "fdcan.h"
+#include "usart.h"
+#include "debug.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,6 +53,7 @@ extern uint8_t rx_buff[16];
 extern SerialPacket motorValues;
 extern int count;
 extern FDCAN_HandleTypeDef hfdcan1;
+extern UART_HandleTypeDef huart6;
 /* USER CODE END Variables */
 /* Definitions for ControlTask */
 osThreadId_t ControlTaskHandle;
@@ -144,9 +148,14 @@ void ControlTaskFunction(void *argument)
   for(;;)
   {
 	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
-	  sendGlobalEnableFrame(&hfdcan1);
-	  sendCANMessage(&hfdcan1, 0x204b540 | 36, (uint8_t *)"\x00\x01\x00\x00\x00\x00\xfe\x0c", 8);
-	//directControl(motorValues, enableSync); // send CAN packets to motors to set motor speeds
+	  //sendGlobalEnableFrame(&hfdcan1);
+	  //sendCANMessage(&hfdcan1, 0x204b540 | 36, (uint8_t *)"\x00\x01\x00\x00\x00\x00\xfe\x0c", 8);
+	  /**if (HAL_UART_Receive_IT(&huart6, rx_buff, 16) != HAL_OK){
+		  HAL_StatusTypeDef state1 = HAL_UART_Receive_IT(&huart6, rx_buff, 16);
+		  writeDebugFormat("HAL_UART_Receive_IT returned %d\n", (int)state1);
+		  writeDebugString("wrong");
+	  }**/
+	directControl(motorValues, enableSync); // send CAN packets to motors to set motor speeds
     osDelay(10);
   }
   /* USER CODE END ControlTaskFunction */
@@ -208,29 +217,53 @@ int findStartByte(uint8_t *rx_buff, int length)
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	if (HAL_UART_Receive_IT(&huart, rx_buff, 16) != HAL_OK)
+	if (HAL_UART_Receive_IT(huart, rx_buff, 16) != HAL_OK)
 	{
 		writeDebugString("ERROR OCCURED DURING UART RX INTERRUPT\r\n");
 	}
+	else{
+		writeDebugString("ts working");
+		int startByte = findStartByte(rx_buff, 8);
+			if (startByte == -1)
+				return;
 
-	int startByte = findStartByte(rx_buff, 8);
-	if (startByte == -1)
-		return;
+			if (startByte == 0 && rx_buff[8] == START_BYTE)
+				startByte += 8;
 
-	if (startByte == 0 && rx_buff[8] == START_BYTE)
-		startByte += 8;
+			count = 0;
+			motorValues = (SerialPacket) {
+				.invalid = 0,
+				.header = rx_buff[startByte + 1],
+				.top_left_wheel = rx_buff[startByte + 2],
+				.back_left_wheel = rx_buff[startByte + 3],
+				.top_right_wheel  = rx_buff[startByte + 4],
+				.back_right_wheel = rx_buff[startByte + 5],
+				.drum  = rx_buff[startByte + 6],
+				.actuator  = rx_buff[startByte + 7],
+			};
 
-	count = 0;
-	motorValues = (SerialPacket) {
-		.invalid = 0,
-		.header = rx_buff[startByte + 1],
-		.top_left_wheel = rx_buff[startByte + 2],
-		.back_left_wheel = rx_buff[startByte + 3],
-		.top_right_wheel  = rx_buff[startByte + 4],
-		.back_right_wheel = rx_buff[startByte + 5],
-		.drum  = rx_buff[startByte + 6],
-		.actuator  = rx_buff[startByte + 7],
-	};
+	}
+}
+
+void can_irq(FDCAN_HandleTypeDef *pfdcan)
+{
+  FDCAN_RxHeaderTypeDef msg;
+  uint64_t data;
+  HAL_FDCAN_GetRxMessage(pfdcan, FDCAN_RX_FIFO0, &msg, (uint8_t *) &data);
+  if (pdp.receiveCAN)
+	  pdp.receiveCAN(&pdp, &msg, &data);
+}
+
+PDP pdp;
+
+//can_irq function implementation
+void can_irq(FDCAN_HandleTypeDef *pfdcan)
+{
+  FDCAN_RxHeaderTypeDef msg;
+  uint64_t data;
+  HAL_FDCAN_GetRxMessage(pfdcan, FDCAN_RX_FIFO0, &msg, (uint8_t *) &data);
+  if (pdp.receiveCAN)
+	  pdp.receiveCAN(&pdp, &msg, &data);
 }
 
 
