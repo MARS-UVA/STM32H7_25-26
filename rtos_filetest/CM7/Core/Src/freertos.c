@@ -29,6 +29,7 @@
 #include "fdcan.h"
 #include "usart.h"
 #include "debug.h"
+#include "pdp.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,6 +55,7 @@ extern SerialPacket motorValues;
 extern int count;
 extern FDCAN_HandleTypeDef hfdcan1;
 extern UART_HandleTypeDef huart6;
+PDP pdp;
 /* USER CODE END Variables */
 /* Definitions for ControlTask */
 osThreadId_t ControlTaskHandle;
@@ -245,18 +247,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	}
 }
 
-void can_irq(FDCAN_HandleTypeDef *pfdcan)
-{
-  FDCAN_RxHeaderTypeDef msg;
-  uint64_t data;
-  HAL_FDCAN_GetRxMessage(pfdcan, FDCAN_RX_FIFO0, &msg, (uint8_t *) &data);
-  if (pdp.receiveCAN)
-	  pdp.receiveCAN(&pdp, &msg, &data);
-}
-
-PDP pdp;
-
-//can_irq function implementation
 void can_irq(FDCAN_HandleTypeDef *pfdcan)
 {
   FDCAN_RxHeaderTypeDef msg;
