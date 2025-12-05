@@ -30,6 +30,7 @@
 #include "usart.h"
 #include "debug.h"
 #include "pdp.h"
+#include "control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -149,14 +150,6 @@ void ControlTaskFunction(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
-	  //sendGlobalEnableFrame(&hfdcan1);
-	  //sendCANMessage(&hfdcan1, 0x204b540 | 36, (uint8_t *)"\x00\x01\x00\x00\x00\x00\xfe\x0c", 8);
-	  /**if (HAL_UART_Receive_IT(&huart6, rx_buff, 16) != HAL_OK){
-		  HAL_StatusTypeDef state1 = HAL_UART_Receive_IT(&huart6, rx_buff, 16);
-		  writeDebugFormat("HAL_UART_Receive_IT returned %d\n", (int)state1);
-		  writeDebugString("wrong");
-	  }**/
 	directControl(motorValues, enableSync); // send CAN packets to motors to set motor speeds
     osDelay(10);
   }
@@ -224,7 +217,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		writeDebugString("ERROR OCCURED DURING UART RX INTERRUPT\r\n");
 	}
 	else{
-		writeDebugString("ts working");
+		writeDebugString("SUCCESSFULLY RECEIVING UART MESSAGES\n");
 		int startByte = findStartByte(rx_buff, 8);
 			if (startByte == -1)
 				return;
@@ -243,7 +236,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 				.drum  = rx_buff[startByte + 6],
 				.actuator  = rx_buff[startByte + 7],
 			};
-
 	}
 }
 

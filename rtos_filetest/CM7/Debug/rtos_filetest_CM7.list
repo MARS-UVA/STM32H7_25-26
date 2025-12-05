@@ -27,25 +27,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 0000002e  00000000  00000000  0001006c  2**0
                   CONTENTS, READONLY
- 12 .debug_info   000301e3  00000000  00000000  0001009a  2**0
+ 12 .debug_info   000301ce  00000000  00000000  0001009a  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 0000597c  00000000  00000000  0004027d  2**0
+ 13 .debug_abbrev 00005950  00000000  00000000  00040268  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00002280  00000000  00000000  00045c00  2**3
+ 14 .debug_aranges 00002280  00000000  00000000  00045bb8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_rnglists 00001ab1  00000000  00000000  00047e80  2**0
+ 15 .debug_rnglists 00001ab1  00000000  00000000  00047e38  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  000429a7  00000000  00000000  00049931  2**0
+ 16 .debug_macro  000429d6  00000000  00000000  000498e9  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0002e1a5  00000000  00000000  0008c2d8  2**0
+ 17 .debug_line   0002e1cd  00000000  00000000  0008c2bf  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    001b2737  00000000  00000000  000ba47d  2**0
+ 18 .debug_str    001b2737  00000000  00000000  000ba48c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  0026cbb4  2**0
+ 19 .comment      00000043  00000000  00000000  0026cbc3  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000964c  00000000  00000000  0026cbf8  2**2
+ 20 .debug_frame  0000964c  00000000  00000000  0026cc08  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 00000077  00000000  00000000  00276244  2**0
+ 21 .debug_line_str 00000077  00000000  00000000  00276254  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -2506,7 +2506,7 @@ void ControlTaskFunction(void *argument)
     osDelay(10);
  8001412:	200a      	movs	r0, #10
  8001414:	f00a f9aa 	bl	800b76c <osDelay>
-  {
+	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
  8001418:	bf00      	nop
  800141a:	e7eb      	b.n	80013f4 <ControlTaskFunction+0x8>
  800141c:	58021000 	.word	0x58021000
@@ -2714,7 +2714,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 				return;
  800153e:	bf00      	nop
 			};
-
 	}
 }
  8001540:	371c      	adds	r7, #28

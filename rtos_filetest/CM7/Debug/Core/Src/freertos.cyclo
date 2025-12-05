@@ -1,7 +1,7 @@
-../Core/Src/freertos.c:98:6:MX_FREERTOS_Init	1
-../Core/Src/freertos.c:146:6:ControlTaskFunction	1
-../Core/Src/freertos.c:173:6:FeedbackTaskFunction	1
-../Core/Src/freertos.c:191:6:ADCTaskFunction	1
-../Core/Src/freertos.c:208:5:findStartByte	3
-../Core/Src/freertos.c:221:6:HAL_UART_RxCpltCallback	5
+../Core/Src/freertos.c:99:6:MX_FREERTOS_Init	1
+../Core/Src/freertos.c:147:6:ControlTaskFunction	1
+../Core/Src/freertos.c:174:6:FeedbackTaskFunction	1
+../Core/Src/freertos.c:192:6:ADCTaskFunction	1
+../Core/Src/freertos.c:209:5:findStartByte	3
+../Core/Src/freertos.c:222:6:HAL_UART_RxCpltCallback	5
 ../Core/Src/freertos.c:250:6:can_irq	2
