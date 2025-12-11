@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "dma.h"
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
@@ -142,6 +143,7 @@ Error_Handler();
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   MX_ST67W6X_Init();

@@ -1,8 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    stm32h7xx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
+  * @file    bsp_conf.h
+  * @author  GPM Application Team
+  * @brief   This file contains definitions for the BSP interface
   ******************************************************************************
   * @attention
   *
@@ -18,14 +19,14 @@
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32H7xx_IT_H
-#define __STM32H7xx_IT_H
+#ifndef BSP_CONF_H
+#define BSP_CONF_H
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
-/* Private includes ----------------------------------------------------------*/
+/* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -36,32 +37,26 @@ extern "C" {
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
+/** Interfaces the LPTIM instance to be used for FreeRTOS tickless */
+#define LPTIM_HANDLE                            hlptim1
+/** LPTIM instance to be used for FreeRTOS tickless */
+#define LPTIM_IDLE                              LPTIM1
+/** LPTIM IRQn to be used for FreeRTOS tickless */
+#define LPTIM_IDLE_IRQn                         LPTIM1_IRQn
+/** LPTIM clock enable macro to be used for FreeRTOS tickless */
+#define LPTIM_CLK_ENABLE                        __HAL_RCC_LPTIM1_CLKAM_ENABLE
+
+/** Interfaces the UART instance to be used for logging communication */
+#define UART_HANDLE                             huart3
+
+#error "SPI instance not selected. Please use platform settings panel in STM32CubeMX GUI."
+
 /* USER CODE BEGIN EC */
 
 /* USER CODE END EC */
 
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
-
-/* Exported functions prototypes ---------------------------------------------*/
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void DebugMon_Handler(void);
-void DMA1_Stream0_IRQHandler(void);
-void DMA1_Stream1_IRQHandler(void);
-void TIM1_UP_IRQHandler(void);
-void SPI1_IRQHandler(void);
-/* USER CODE BEGIN EFP */
-
-/* USER CODE END EFP */
-
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
-#endif /* __STM32H7xx_IT_H */
+#endif /* BSP_CONF_H */
