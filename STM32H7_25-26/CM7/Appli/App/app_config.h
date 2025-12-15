@@ -46,6 +46,14 @@ typedef enum
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
+/** Output log printf mode to redirect all traces on printf function.
+  * Requires to implement the function __io_putchar */
+#define LOG_OUTPUT_PRINTF           0
+/** Output log UART mode to redirect all traces on a dedicated UART instance */
+#define LOG_OUTPUT_UART             1
+/** Output log ITM mode to redirect all traces on the ITM interface */
+#define LOG_OUTPUT_ITM              2
+
 /** Host low power disabled mode */
 #define LOW_POWER_DISABLE           0
 /** Host low power sleep mode */
@@ -55,6 +63,9 @@ typedef enum
 #define LOW_POWER_STOP_ENABLE       2
 /** Host low power standby mode. Not supported */
 #define LOW_POWER_STDBY_ENABLE      3
+
+/** Select output log mode [0: printf / 1: UART / 2: ITM] */
+#define LOG_OUTPUT_MODE             LOG_OUTPUT_UART
 
 /** Low power configuration [0: disable / 1: sleep / 2: stop / 3: standby] */
 #define LOW_POWER_MODE              LOW_POWER_DISABLE

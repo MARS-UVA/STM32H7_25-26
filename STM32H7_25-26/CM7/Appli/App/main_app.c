@@ -28,6 +28,7 @@
 #include "main.h"
 #include "main_app.h"
 #include "app_config.h"
+#include "lwip.h"
 
 #if (LOW_POWER_MODE > LOW_POWER_DISABLE)
 #include "utilities_conf.h"
@@ -269,6 +270,14 @@ void main_app(void)
 
   /* USER CODE END main_app_3 */
 
+  /* Initialize the LWIP stack */
+  ret = MX_LWIP_Init();
+  if (ret)
+  {
+    LogError("failed to initialize LWIP stack %" PRIi32 "\n", ret);
+    goto _err;
+  }
+
   LogInfo("ready\n");
 
   while (1)
@@ -322,6 +331,8 @@ _err:
 
   /* De-initialize the ST67W6X Driver */
   W6X_DeInit();
+
+  shell_freertos_deinit();
 
   /* USER CODE BEGIN main_app_Err_2 */
 

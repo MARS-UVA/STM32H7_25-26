@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    bsp_conf.h
+  * @file    ping.h
   * @author  GPM Application Team
-  * @brief   This file contains definitions for the BSP interface
+  * @brief   Ping module definition
   ******************************************************************************
   * @attention
   *
@@ -19,45 +19,54 @@
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef BSP_CONF_H
-#define BSP_CONF_H
+#ifndef PING_H
+#define PING_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdint.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "event_groups.h"
+#include "lwip/inet.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
-/* USER CODE END ET */
-
 /* Exported constants --------------------------------------------------------*/
-/** Interfaces the LPTIM instance to be used for FreeRTOS tickless */
-#define LPTIM_HANDLE                            hlptim1
-/** LPTIM instance to be used for FreeRTOS tickless */
-#define LPTIM_IDLE                              LPTIM1
-/** LPTIM IRQn to be used for FreeRTOS tickless */
-#define LPTIM_IDLE_IRQn                         LPTIM1_IRQn
-/** LPTIM clock enable macro to be used for FreeRTOS tickless */
-#define LPTIM_CLK_ENABLE                        __HAL_RCC_LPTIM1_CLKAM_ENABLE
-
-/** Interfaces the UART instance to be used for logging communication */
-#define UART_HANDLE                             huart3
-
-/** Interfaces the SPI instance to be used for NCP communication */
-#define NCP_SPI_HANDLE                          hspi1
-
 /* USER CODE BEGIN EC */
 
 /* USER CODE END EC */
+/* Exported types ------------------------------------------------------------*/
+/**
+  * @brief  ping IPv4 configuration structure
+  */
+typedef struct
+{
+  EventGroupHandle_t event;           /*!< Event group handle */
+  int32_t count;                      /*!< Number of ping requests */
+  int32_t interval_ms;                /*!< Interval between ping requests in milliseconds */
+  int32_t size;                       /*!< Size of the ping payload */
+  char dst_addr[IP4ADDR_STRLEN_MAX];  /*!< Destination IPv4 address */
+} ping_ipv4_params_t;
+
+/* USER CODE BEGIN ET */
+
+/* USER CODE END ET */
+/* Exported functions --------------------------------------------------------*/
+/**
+  * Ping ipv4 function
+  * @param  argc: number of arguments
+  * @param  argv: pointer to the arguments
+  * @retval 0 on success, -1 otherwise
+  */
+int32_t ping_ipv4_cmd(int32_t argc, char **argv);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* BSP_CONF_H */
+#endif /* PING_H */

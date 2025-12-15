@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    bsp_conf.h
+  * @file    logging_config.h
   * @author  GPM Application Team
-  * @brief   This file contains definitions for the BSP interface
+  * @brief   Header file for the W6X Logging configuration module
   ******************************************************************************
   * @attention
   *
@@ -19,38 +19,28 @@
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef BSP_CONF_H
-#define BSP_CONF_H
+#ifndef LOGGING_CONFIG_H
+#define LOGGING_CONFIG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 /* Includes ------------------------------------------------------------------*/
+#include "logging_levels.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
-/* USER CODE END ET */
-
 /* Exported constants --------------------------------------------------------*/
-/** Interfaces the LPTIM instance to be used for FreeRTOS tickless */
-#define LPTIM_HANDLE                            hlptim1
-/** LPTIM instance to be used for FreeRTOS tickless */
-#define LPTIM_IDLE                              LPTIM1
-/** LPTIM IRQn to be used for FreeRTOS tickless */
-#define LPTIM_IDLE_IRQn                         LPTIM1_IRQn
-/** LPTIM clock enable macro to be used for FreeRTOS tickless */
-#define LPTIM_CLK_ENABLE                        __HAL_RCC_LPTIM1_CLKAM_ENABLE
+/*
+ * All available configuration defines can be found in
+ * Middlewares\ST\ST67W6X_Network_Driver\Conf\logging_config_template.h
+ */
 
-/** Interfaces the UART instance to be used for logging communication */
-#define UART_HANDLE                             huart3
-
-/** Interfaces the SPI instance to be used for NCP communication */
-#define NCP_SPI_HANDLE                          hspi1
+/** Global verbosity level (LOG_NONE, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG) */
+#define LOG_LEVEL                               LOG_DEBUG
 
 /* USER CODE BEGIN EC */
 
@@ -60,4 +50,4 @@ extern "C" {
 }
 #endif /* __cplusplus */
 
-#endif /* BSP_CONF_H */
+#endif /* LOGGING_CONFIG_H */

@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    bsp_conf.h
+  * @file    lwip_netif.h
   * @author  GPM Application Team
-  * @brief   This file contains definitions for the BSP interface
+  * @brief   This file provides code for the configuration of the ST67W6X Network interface over LwIP
   ******************************************************************************
   * @attention
   *
@@ -17,47 +17,56 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef BSP_CONF_H
-#define BSP_CONF_H
+#ifndef __LWIP_NETIF_H
+#define __LWIP_NETIF_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 /* Includes ------------------------------------------------------------------*/
+#include "lwip/opt.h"
+#include "lwip/netif.h"
+#include "w6x_api.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
-/* USER CODE END ET */
-
 /* Exported constants --------------------------------------------------------*/
-/** Interfaces the LPTIM instance to be used for FreeRTOS tickless */
-#define LPTIM_HANDLE                            hlptim1
-/** LPTIM instance to be used for FreeRTOS tickless */
-#define LPTIM_IDLE                              LPTIM1
-/** LPTIM IRQn to be used for FreeRTOS tickless */
-#define LPTIM_IDLE_IRQn                         LPTIM1_IRQn
-/** LPTIM clock enable macro to be used for FreeRTOS tickless */
-#define LPTIM_CLK_ENABLE                        __HAL_RCC_LPTIM1_CLKAM_ENABLE
+/** Netif task priority */
+#define NETIF_TASK_PRIORITY     50
 
-/** Interfaces the UART instance to be used for logging communication */
-#define UART_HANDLE                             huart3
-
-/** Interfaces the SPI instance to be used for NCP communication */
-#define NCP_SPI_HANDLE                          hspi1
+/** Netif task stack size */
+#define NETIF_TASK_STACK        2048
 
 /* USER CODE BEGIN EC */
 
 /* USER CODE END EC */
 
+/* Exported functions --------------------------------------------------------*/
+/**
+  * @brief  Initializes the network interface
+  * @param  net_if_cb: Pointer to the network interface control block
+  * @return Operation status
+  */
+int32_t net_if_init(W6X_Net_if_cb_t *net_if_cb);
+
+/**
+  * @brief  Sends a packet from the network interface over SPI
+  * @param  net_if: Pointer to the network interface structure
+  * @param  p_buf: Pointer to the packet buffer to be sent
+  * @return Returns ERR_OK on success or an error code on failure
+  */
+err_t net_if_output(struct netif *net_if, struct pbuf *p_buf);
+
+/* USER CODE BEGIN EF */
+
+/* USER CODE END EF */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* BSP_CONF_H */
+#endif /* __LWIP_NETIF_H */
