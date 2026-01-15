@@ -57,10 +57,10 @@ typedef enum
 #define LOW_POWER_STDBY_ENABLE      3
 
 /** SSID of the local Access Point */
-#define WIFI_SSID                   "MY_SSID"
+#define WIFI_SSID                   "Team_02"
 
 /** Password of the local Access Point */
-#define WIFI_PASSWORD               "MY_PASSWORD"
+#define WIFI_PASSWORD               "marsuva!"
 
 /** Define the default factor to apply to AP DTIM interval when connected and power save mode is enabled */
 #define WIFI_DTIM                   1

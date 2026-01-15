@@ -206,10 +206,10 @@ void main_app(void)
   /* Initialize the shell utilities on UART instance */
   ShellInit();
 
-  LogInfo("#### Welcome to %s Application #####\n", app_info.name);
-  LogInfo("# build: %s %s\n", __TIME__, __DATE__);
-  LogInfo("--------------- Host info ---------------\n");
-  LogInfo("Host FW Version:          %s\n", app_info.version);
+  LogInfo("#### Welcome to %s Application #####\r\n", app_info.name);
+  LogInfo("# build: %s %s\r\n", __TIME__, __DATE__);
+  LogInfo("--------------- Host info ---------------\r\n");
+  LogInfo("Host FW Version:          %s\r\n", app_info.version);
 
   /* USER CODE BEGIN main_app_2 */
 
@@ -228,7 +228,7 @@ void main_app(void)
   ret = W6X_Init();
   if (ret)
   {
-    LogError("failed to initialize ST67W6X Driver, %" PRIi32 "\n", ret);
+    LogError("failed to initialize ST67W6X Driver, %" PRIi32 "\r\n", ret);
     goto _err;
   }
 
@@ -236,19 +236,19 @@ void main_app(void)
   ret = W6X_WiFi_Init();
   if (ret)
   {
-    LogError("failed to initialize ST67W6X Wi-Fi component, %" PRIi32 "\n", ret);
+    LogError("failed to initialize ST67W6X Wi-Fi component, %" PRIi32 "\r\n", ret);
     goto _err;
   }
-  LogInfo("Wi-Fi init is done\n");
+  LogInfo("Wi-Fi init is done\r\n");
 
   /* Initialize the ST67W6X Network module */
   ret = W6X_Net_Init();
   if (ret)
   {
-    LogError("failed to initialize ST67W6X Net component, %" PRIi32 "\n", ret);
+    LogError("failed to initialize ST67W6X Net component, %" PRIi32 "\r\n", ret);
     goto _err;
   }
-  LogInfo("Net init is done\n");
+  LogInfo("Net init is done\r\n");
 
   /* USER CODE BEGIN main_app_3 */
 
@@ -261,30 +261,30 @@ void main_app(void)
   if ((int32_t)xEventGroupWaitBits(scan_event_flags, EVENT_FLAG_SCAN_DONE, pdTRUE, pdFALSE,
                                    pdMS_TO_TICKS(WIFI_SCAN_TIMEOUT)) != EVENT_FLAG_SCAN_DONE)
   {
-    LogError("Scan Failed\n");
+    LogError("Scan Failed\r\n");
     goto _err;
   }
 
   /* Connect the device to the pre-defined Access Point */
-  LogInfo("\nConnecting to Local Access Point\n");
+  LogInfo("\nConnecting to Local Access Point\r\n");
   strncpy((char *)ConnectOpts.SSID, WIFI_SSID, W6X_WIFI_MAX_SSID_SIZE);
   strncpy((char *)ConnectOpts.Password, WIFI_PASSWORD, W6X_WIFI_MAX_PASSWORD_SIZE);
   ret = W6X_WiFi_Connect(&ConnectOpts);
   if (ret)
   {
-    LogError("failed to connect, %" PRIi32 "\n", ret);
+    LogError("failed to connect, %" PRIi32 "\r\n", ret);
     goto _err;
   }
 
-  LogInfo("App connected\n");
+  LogInfo("App connected\r\n");
   if (W6X_WiFi_Station_GetState(&state, &connectData) != W6X_STATUS_OK)
   {
-    LogInfo("Connected to an Access Point\n");
+    LogInfo("Connected to an Access Point\r\n");
     return;
   }
 
-  LogInfo("Connected to following Access Point :\n");
-  LogInfo("[" MACSTR "] Channel: %" PRIu32 " | RSSI: %" PRIi32 " | SSID: %s\n",
+  LogInfo("Connected to following Access Point :\r\n");
+  LogInfo("[" MACSTR "] Channel: %" PRIu32 " | RSSI: %" PRIi32 " | SSID: %s\r\n",
           MAC2STR(connectData.MAC),
           connectData.Channel,
           connectData.Rssi,
@@ -294,49 +294,49 @@ void main_app(void)
   ret = W6X_WiFi_SetDTIM(WIFI_DTIM);
   if (ret)
   {
-    LogError("failed to initialize the DTIM, %" PRIi32 "\n", ret);
+    LogError("failed to initialize the DTIM, %" PRIi32 "\r\n", ret);
   }
 
   /* Execute a ICMP request (ping) on remote url */
-  LogInfo("\nPinging Google\n");
+  LogInfo("\nPinging Google\r\n");
   ret = W6X_Net_Ping((uint8_t *)"www.google.com", 64, ping_count, 1000, &average_ping, &ping_received_response);
   if (ret == W6X_STATUS_OK)
   {
     if (ping_received_response == 0)
     {
       /* No response or ping in timeout */
-      LogError("No ping received\n");
+      LogError("No ping received\r\n");
       goto _err;
     }
     else
     {
       /* Print the ping statistic with latency and packet loss */
-      LogInfo("%" PRIu16 " packets transmitted, %" PRIu16 " received, %" PRIu16 "%% packet loss, time %" PRIu32 "ms\n",
+      LogInfo("%" PRIu16 " packets transmitted, %" PRIu16 " received, %" PRIu16 "%% packet loss, time %" PRIu32 "ms\r\n",
               ping_count, ping_received_response,
               100 * (ping_count - ping_received_response) / ping_count, average_ping);
     }
   }
   else
   {
-    LogError("Ping failed\n");
+    LogError("Ping failed\r\n");
     goto _err;
   }
 
   /* Execute ECHO test */
   if (echo_sizes_loop(1, NULL) != 0)
   {
-    LogError("Echo failed\n");
+    LogError("Echo failed\r\n");
     goto _err;
   }
 
-  LogInfo("Successful Echo Test\n");
+  LogInfo("Successful Echo Test\r\n");
 
   /* USER CODE BEGIN main_app_Last_1 */
 
   /* USER CODE END main_app_Last_1 */
 
 #if (SHELL_ENABLE == 1)
-  LogInfo("\nApplication runs in CLI mode. Type help or quit to exit.\n");
+  LogInfo("\nApplication runs in CLI mode. Type help or quit to exit.\r\n");
   while (quit_msg == 0)
   {
     vTaskDelay(1000);
@@ -347,14 +347,14 @@ void main_app(void)
   ret = W6X_WiFi_Disconnect(1);
   if (ret == W6X_STATUS_OK)
   {
-    LogInfo("Wi-Fi Disconnect success\n");
+    LogInfo("Wi-Fi Disconnect success\r\n");
   }
   else
   {
-    LogError("Wi-Fi Disconnect failed\n");
+    LogError("Wi-Fi Disconnect failed\r\n");
   }
 
-  LogInfo("##### Quitting the application\n");
+  LogInfo("##### Quitting the application\r\n");
 
   /* USER CODE BEGIN main_app_Last */
 

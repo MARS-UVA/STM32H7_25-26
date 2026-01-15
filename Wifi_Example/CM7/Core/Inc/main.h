@@ -63,6 +63,7 @@ void Error_Handler(void);
 #define CHIP_EN_GPIO_Port GPIOE
 #define SPI_RDY_Pin GPIO_PIN_13
 #define SPI_RDY_GPIO_Port GPIOE
+#define SPI_RDY_EXTI_IRQn EXTI15_10_IRQn
 #define LED_RED_Pin GPIO_PIN_14
 #define LED_RED_GPIO_Port GPIOB
 #define SPI_CS_Pin GPIO_PIN_14
@@ -71,6 +72,7 @@ void Error_Handler(void);
 #define BOOT_GPIO_Port GPIOA
 #define USER_BUTTON_Pin GPIO_PIN_9
 #define USER_BUTTON_GPIO_Port GPIOG
+#define USER_BUTTON_EXTI_IRQn EXTI9_5_IRQn
 #define LED_YELLOW_Pin GPIO_PIN_1
 #define LED_YELLOW_GPIO_Port GPIOE
 
