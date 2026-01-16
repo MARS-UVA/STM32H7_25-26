@@ -184,12 +184,13 @@ Error_Handler();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	if (count>10)
-	{
-		writeDebugString("Disconnected from Jetson!\r\n");
-	}
-	uint8_t packet[4 + 4 * 9];
-	writeToJetson(packet, 4 + 4 * 9);
+//	if (count>10)
+//	{
+//		writeDebugString("Disconnected from Jetson!\r\n");
+//	}
+//	uint8_t packet[4 + 4 * 9];
+//	writeToJetson(packet, 4 + 4 * 9);
+	  HAL_Delay(1);
 
   }
   /* USER CODE END 3 */

@@ -51,7 +51,7 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
  ../Core/Inc/usart.h ../Core/Inc/debug.h ../Core/Inc/pdp.h \
  ../Core/Inc/util.h ../Core/Inc/control.h ../Core/Inc/serial.h \
  ../Core/Inc/TalonSRX.h ../Core/Inc/fdcan.h ../Core/Inc/TalonFX.h \
- ../Core/Inc/debug.h
+ ../Core/Inc/debug.h ../Core/Inc/adc.h
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
@@ -113,3 +113,4 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 ../Core/Inc/fdcan.h:
 ../Core/Inc/TalonFX.h:
 ../Core/Inc/debug.h:
+../Core/Inc/adc.h:

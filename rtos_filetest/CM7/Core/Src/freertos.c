@@ -31,6 +31,7 @@
 #include "debug.h"
 #include "pdp.h"
 #include "control.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -119,10 +120,10 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of ControlTask */
-  ControlTaskHandle = osThreadNew(ControlTaskFunction, NULL, &ControlTask_attributes);
+  //ControlTaskHandle = osThreadNew(ControlTaskFunction, NULL, &ControlTask_attributes);
 
   /* creation of FeedbackTask */
-  FeedbackTaskHandle = osThreadNew(FeedbackTaskFunction, NULL, &FeedbackTask_attributes);
+  //FeedbackTaskHandle = osThreadNew(FeedbackTaskFunction, NULL, &FeedbackTask_attributes);
 
   /* creation of ADCTask */
   ADCTaskHandle = osThreadNew(ADCTaskFunction, NULL, &ADCTask_attributes);
@@ -191,7 +192,7 @@ void FeedbackTaskFunction(void *argument)
 	  			motorCurrents[6] = pdp.getChannelCurrent(&pdp, LEFT_ACTUATOR_PDP_ID);
 	  			motorCurrents[7] = pdp.getChannelCurrent(&pdp, RIGHT_ACTUATOR_PDP_ID);
 
-	  			motorCurrents[8] = leftPot.read(&leftPot); // read a calibrated value from left potentiometer
+	  			//motorCurrents[8] = leftPot.read(&leftPot); // read a calibrated value from left potentiometer
 
 	  			pdp.receivedNew0 = false;
 	  			pdp.receivedNew40 = false;
@@ -222,10 +223,22 @@ void FeedbackTaskFunction(void *argument)
 /* USER CODE END Header_ADCTaskFunction */
 void ADCTaskFunction(void *argument)
 {
+
   /* USER CODE BEGIN ADCTaskFunction */
+	const float ADC_Resolution = 65536.0;
+	const float Refrence_Voltage = 3.3;
+	char transmit_buffer[100];
+	int32_t StringLength;
   /* Infinite loop */
   for(;;)
   {
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+	  HAL_ADC_Stop(&hadc1);
+	  float voltage = ((HAL_ADC_GetValue(&hadc1) * Refrence_Voltage) / ADC_Resolution);
+	  sprintf((char *) transmit_buffer, "ADC_Sample = %f\r\n",voltage);//enter the formula here to convert ADC readings to voltage
+	  for(StringLength = 0; *(transmit_buffer+StringLength); StringLength++);
+	  HAL_UART_Transmit(&huart3, (uint8_t *) transmit_buffer, StringLength, HAL_MAX_DELAY);
     osDelay(1);
   }
   /* USER CODE END ADCTaskFunction */
@@ -250,7 +263,7 @@ int findStartByte(uint8_t *rx_buff, int length)
 	return -1;
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+/*void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (HAL_UART_Receive_IT(huart, rx_buff, 16) != HAL_OK)
 	{
 		writeDebugString("ERROR OCCURED DURING UART RX INTERRUPT\r\n");
@@ -285,7 +298,7 @@ void can_irq(FDCAN_HandleTypeDef *pfdcan)
   HAL_FDCAN_GetRxMessage(pfdcan, FDCAN_RX_FIFO0, &msg, (uint8_t *) &data);
   if (pdp.receiveCAN)
 	  pdp.receiveCAN(&pdp, &msg, &data);
-}
+}*/
 
 
 /* USER CODE END Application */
