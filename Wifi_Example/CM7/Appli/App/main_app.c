@@ -60,7 +60,9 @@
 
 /* Global variables ----------------------------------------------------------*/
 /* USER CODE BEGIN GV */
-
+uint8_t ip[4];
+uint8_t gateway[4];
+uint8_t netmask[4];
 /* USER CODE END GV */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -297,21 +299,30 @@ void main_app(void)
     LogError("failed to initialize the DTIM, %" PRIi32 "\r\n", ret);
   }
 
+  //Extract IP Address
+  if(W6X_Net_Station_GetIPAddress(ip, gateway, netmask) == W6X_STATUS_OK) {
+      LogInfo("IP: %u.%u.%u.%u\r\n", ip[0], ip[1], ip[2], ip[3]);
+      LogInfo("GW: %u.%u.%u.%u\r\n", gateway[0], gateway[1], gateway[2], gateway[3]);
+      LogInfo("NM: %u.%u.%u.%u\r\n", netmask[0], netmask[1], netmask[2], netmask[3]);
+  } else {
+      LogError("W6X_Net_Station_GetIPAddress failed\n");
+  }
+
   /* Execute a ICMP request (ping) on remote url */
-  LogInfo("\nPinging Google\r\n");
+  /**LogInfo("\nPinging Google\r\n");
   ret = W6X_Net_Ping((uint8_t *)"www.google.com", 64, ping_count, 1000, &average_ping, &ping_received_response);
   if (ret == W6X_STATUS_OK)
   {
     if (ping_received_response == 0)
     {
       /* No response or ping in timeout */
-      LogError("No ping received\r\n");
+      /**LogError("No ping received\r\n");
       goto _err;
     }
     else
     {
       /* Print the ping statistic with latency and packet loss */
-      LogInfo("%" PRIu16 " packets transmitted, %" PRIu16 " received, %" PRIu16 "%% packet loss, time %" PRIu32 "ms\r\n",
+      /**LogInfo("%" PRIu16 " packets transmitted, %" PRIu16 " received, %" PRIu16 "%% packet loss, time %" PRIu32 "ms\r\n",
               ping_count, ping_received_response,
               100 * (ping_count - ping_received_response) / ping_count, average_ping);
     }

@@ -48,12 +48,12 @@
 /* Private defines -----------------------------------------------------------*/
 #ifndef ECHO_SERVER_URL
 /** URL of Echo TCP remote server */
-#define ECHO_SERVER_URL             "tcpbin.com"
+#define ECHO_SERVER_URL             "192.168.0.102" //used to be tcpbin.com
 #endif /* ECHO_SERVER_URL */
 
 #ifndef ECHO_SERVER_PORT
 /** Port of Echo TCP remote server */
-#define ECHO_SERVER_PORT            4242
+#define ECHO_SERVER_PORT            5000 //used to be 4242
 #endif /* ECHO_SERVER_PORT */
 
 #ifndef ECHO_TRANSFER_SIZE_START
