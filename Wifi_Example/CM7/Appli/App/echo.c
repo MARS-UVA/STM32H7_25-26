@@ -48,7 +48,7 @@
 /* Private defines -----------------------------------------------------------*/
 #ifndef ECHO_SERVER_URL
 /** URL of Echo TCP remote server */
-#define ECHO_SERVER_URL             "192.168.0.102" //used to be tcpbin.com
+#define ECHO_SERVER_URL             "192.168.0.101" //used to be tcpbin.com
 #endif /* ECHO_SERVER_URL */
 
 #ifndef ECHO_SERVER_PORT
@@ -252,7 +252,7 @@ static int32_t echo_process(uint32_t send_loop, uint32_t len)
 
   /* Prepare a TCP socket */
   LogInfo("\nCreate a new socket\n");
-  sock = W6X_Net_Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  sock = W6X_Net_Socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (sock < 0)
   {
     LogInfo("Socket creation failed\n");
